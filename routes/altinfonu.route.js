@@ -24,22 +24,15 @@ const headers = {
 
 /**
  * @swagger
- * tags:
- *   name: Fon Listesi
- *   description: Tüm Fonlara ait işlemler
+ * /altinfonu:
+ *    get:
+ *     summary: Tüm altın fonlarını listeler
+ *     tags: [Fon Listesi]
+ *     responses:
+ *      '200':
+ *        description: tüm altın fonlarını listeler
  */
 
-/**
- * @swagger
- * /fonlistesi:
- *  get:
- *    description: Tefas üzerindeki tüm fonları getirir
- *    summary: TEFAS Ve BEFAS üzerindeki tüm fon Listesi
- *    tags: [Fon Listesi]
- *    responses:
- *      '200':
- *        description: Tüm fon listesini geriye döndürür
- */
 router.get("/", async (req, res) => {
   try {
     request(
@@ -70,7 +63,15 @@ router.get("/", async (req, res) => {
             body: "calismatipi=2&fontip=YAT&sfontur=&kurucukod=&fongrup=&bastarih=24.05.2022&bittarih=23.06.2022&fonturkod=&fonunvantip=&strperiod=1%2C1%2C1%2C1%2C1%2C1%2C1&islemdurum=",
           },
           (err, response) => {
-            res.json(JSON.parse(response.body));
+            const parsedjson = JSON.parse(response.body);
+            let altinfonlari = parsedjson.data.filter(
+              (item) => item["FONTURACIKLAMA"] == "Altın Fonu"
+            );
+
+            res.json({
+              fonsayisi: altinfonlari.length,
+              fonlar: altinfonlari,
+            });
           }
         );
       }

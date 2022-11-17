@@ -3,6 +3,23 @@ const request = require("request");
 const { parse } = require("node-html-parser");
 var he = require("he");
 
+/**
+ * @swagger
+ * /fon/{fonadi}:
+ *    get:
+ *     summary: Herhangi bir fonun detaylarını getirir.
+ *     tags: [Fon Listesi]
+ *     parameters:
+ *       - in: path
+ *         name: fonadi
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Fon kodunu giriniz
+ *     responses:
+ *      '200':
+ *        description: fon hakkında detayları getirir.
+ */
 router.get("/:fonadi", async (req, res) => {
   try {
     request(
@@ -16,7 +33,19 @@ router.get("/:fonadi", async (req, res) => {
       (err, response) => {
         if (response.body) {
           const root = parse(response.body);
-          res.header("Content-Type", "application/json; charset=utf-8");
+          const VarlikRegex = new RegExp(
+            /series: (\[{"name":"Varlık Dağılımı".*)/
+          );
+          const series = response.body.match(VarlikRegex)[1];
+          const parseSeris = JSON.parse(series)[0].data.reduce(
+            (total, curr) => ((total[curr[0]] = curr[1]), total),
+            {}
+          );
+
+          const pricetable = Array.from(
+            root.querySelectorAll(".price-indicators>ul>li>span")
+          ).map((item, index) => item.innerHTML);
+
           const rows = root.querySelectorAll(".fund-profile-item");
           const price = Array.from(
             root.querySelectorAll(".top-list>li>span")
@@ -39,10 +68,17 @@ router.get("/:fonadi", async (req, res) => {
                 MinAlim: he.decode(rows[7].firstChild.innerText),
                 MinSatis: he.decode(rows[7].firstChild.innerText),
               },
+              FonDagilim: parseSeris,
               fonFiyat: {
-                SonFiyat: he.decode(price[0] + "₺"),
+                SonFiyat: he.decode(price[0]),
                 GunlukGetiri: he.decode(price[1]),
-                FonDegeri: he.decode(price[3] + "₺"),
+                FonDegeri: he.decode(price[3]),
+              },
+              FonFiyatTablosu: {
+                Son1Ay: pricetable[0],
+                Son3Ay: pricetable[1],
+                Son6Ay: pricetable[2],
+                Son1Yil: pricetable[3],
               },
             });
           }

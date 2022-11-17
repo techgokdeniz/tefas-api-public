@@ -24,8 +24,7 @@ const swaggerOptions = {
       servers: ["http://localhost:3000"],
     },
   },
-  // ['.routes/*.js']
-  apis: ["app.js"],
+  apis: ["./routes/*.js"],
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
@@ -35,19 +34,12 @@ app.get("/", async (req, res, next) => {
   res.send({ message: "Tefas Api Server it works 🐻" });
 });
 
-// Routes
-/**
- * @swagger
- * /fonlistesi:
- *  get:
- *    description: Use to request all customers
- *    responses:
- *      '200':
- *        description: A successful response
- */
 app.use("/fon", require("./routes/fondetail.route"));
 
 app.use("/fonlistesi", require("./routes/fonlist.route"));
+
+app.use("/altinfonu", require("./routes/altinfonu.route"));
+app.use("/hissesenedifonu", require("./routes/hissesenedifonu.route"));
 
 app.use((req, res, next) => {
   next(createError.NotFound());
